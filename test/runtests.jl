@@ -1,10 +1,10 @@
 using LambertWExp, LambertW, Test
 
-@testset "lambertwexp" begin
-
-
 "inverse of u = lambertwexp(x)"
 lambexpinv(u) = log(u) + u
+
+
+@testset "lambertwexp" begin
 
 
 @test iszero(lambertwexp(-Inf))
