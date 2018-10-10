@@ -1,11 +1,13 @@
 using LambertW
 
-
-export lambertwexp
-
-#= This can easily be extended to complex z and
-other branches of W. I didn't do it because real
+#= This code can be easily be extended to complex z
+and other branches of W. I didn't do it because real
 z was sufficient for my purposes. =#
+
+
+export lambertwexp,
+       lambertwexp_d1_from_W,
+       lambertwexp_d2_from_W
 
 
 """Halley's iteration for W(e^z), with initial guess x0"""
@@ -22,7 +24,7 @@ function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
     divide numerator and denominator of the fraction by
     e^z. This gives the iteration used here for W(e^z).
 
-    This routine is best when z ≥ 0. If z < 0 it might be better
+    This routine is best when z ≥ 0. If z < 0 it's better
     to call lambert(exp(z)) directly.
     ********************************************************** =#
 
@@ -76,12 +78,32 @@ function lambertw_branch_zero_exp(x::T; maxiter::Integer)::T where T<:Real
 end
 
 
+"""Series expansion of W(e^z) about z = 0"""
+function lambertw_series_0(x::T)::T where T<:Real
+    0.5671432904097838 + (0.3618962566348892 + 
+                         (0.07367780517637275 + 
+                         (-0.001342859654990087 + 
+                         (-0.001636065147912496 + 0.00023214965556996332x)x)x)x)x
+end
+
+
 """W(e^x), for real x and the principal branch of W"""
 function lambertwexp(x::Real; maxiter::Integer = 1000)
     maxiter ≥ 0 || throw(ArgumentError("maxiter must be non-negative, got $maxiter"))
     if x < 0
         lambertw(exp(x))
+    # elseif abs(x) < 1e-1
+    #     lambertw_series_0(float(x))
     else
         lambertw_branch_zero_exp(float(x); maxiter = maxiter)
     end
 end
+
+
+"""first derivative of W(e^x) with respect to x,
+from the known value of W = W(e^x)"""
+lambertwexp_d1_from_W(W::Real) = W / (1 + W)
+
+"""second derivative of W(e^x) with respect to x,
+from the known value of W = W(e^x)"""
+lambertwexp_d2_from_W(W::Real) = W / (1 + W)^3
