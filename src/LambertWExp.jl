@@ -2,5 +2,6 @@
 module LambertWExp
 
     include("wexp.jl")
+    include("approx.jl")
 
 end # module
