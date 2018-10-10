@@ -2,12 +2,10 @@
 principal branch of W."""
 module LambertWExp
 
+export lambertwexp
 
 #= This can easily be extended to complex z and
 other branches of W. =#
-
-
-export lambertwexp
 
 
 """Halley's iteration for W(e^z), with initial guess x0"""
