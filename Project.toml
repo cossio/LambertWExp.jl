@@ -3,9 +3,11 @@ uuid = "800b0394-cc3a-11e8-1760-5d40f07d798a"
 authors = ["Jorge Fernandez-de-Cossio-Diaz <j.cossio.diaz@gmail.com>"]
 version = "0.1.0"
 
-[extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+[deps]
 LambertW = "984bce1d-4616-540c-a9ee-88d1112d94c9"
 
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
 [targets]
-test = ["Test", "LambertW"]
+test = ["Test"]
