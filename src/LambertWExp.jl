@@ -82,9 +82,4 @@ function lambertwexp(x::Real; maxiter::Integer = 1000)
 end
 
 
-"""first derivative of W(e^x) with respect to x, from the known value of W(e^x)"""
-lambertwexp_d1_from_W(W::Real) = W / (1 + W)
-
-
-
 end # module
