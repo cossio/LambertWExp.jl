@@ -4,7 +4,8 @@ using LambertW
 export lambertwexp
 
 #= This can easily be extended to complex z and
-other branches of W. =#
+other branches of W. I didn't do it because real
+z was sufficient for my purposes. =#
 
 
 """Halley's iteration for W(e^z), with initial guess x0"""
