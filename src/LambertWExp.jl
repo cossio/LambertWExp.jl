@@ -11,7 +11,7 @@ export lambertwexp
 
 
 """Halley's iteration for W(e^z), with initial guess x0"""
-function lambertwexp_halley(z::T, x0::T, maxits::Int) where T <: Number
+function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
     #= *******************************************************
     Based on https://github.com/jlapeyre/LambertW.jl.git,
     which computes W(x). We here needed to compute W(e^x).
@@ -30,7 +30,7 @@ function lambertwexp_halley(z::T, x0::T, maxits::Int) where T <: Number
     lastx = x
     lastdiff = zero(T)
     converged::Bool = false
-    for i in 1:maxits
+    for i in 1:maxiter
         ex = exp(x - z)
         xexz = x * ex - 1
         x1 = x + 1
@@ -43,14 +43,14 @@ function lambertwexp_halley(z::T, x0::T, maxits::Int) where T <: Number
         lastx = x
         lastdiff = xdiff
     end
-    converged || warn("lambertwexp with z=", z, " did not converge in ", maxits, " iterations.")
+    converged || warn("lambertwexp with z=", z, " did not converge in ", maxiter, " iterations.")
     return x
 end
 
 
 """Provides initial guesses for Halley's iteration 
 to compute W(e^z), using the principal branch of W"""
-function lambertw_branch_zero_exp(x::T, maxits::Integer)::T where T<:Real
+function lambertw_branch_zero_exp(x::T; maxiter::Integer)::T where T<:Real
     if isnan(x)
         return x
     elseif !isfinite(x)
@@ -71,14 +71,14 @@ function lambertw_branch_zero_exp(x::T, maxits::Integer)::T where T<:Real
         x0 = (567//1000) * exp(x)
     end
 
-    return lambertwexp_halley(x, x0, maxits)
+    return lambertwexp_halley(x, x0; maxiter = maxiter)
 end
 
 
 """W(e^x), for real x and the principal branch of W"""
-function lambertwexp(x::Real, maxits::Integer = 1000)
-    maxits ≥ 0 || throw(ArgumentError("maxits must be non-negative, got $maxits"))
-    lambertw_branch_zero_exp(float(x), maxits)
+function lambertwexp(x::Real; maxiter::Integer = 1000)
+    maxiter ≥ 0 || throw(ArgumentError("maxiter must be non-negative, got $maxiter"))
+    lambertw_branch_zero_exp(float(x); maxiter = maxiter)
 end
 
 
