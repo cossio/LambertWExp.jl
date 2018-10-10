@@ -41,7 +41,7 @@ function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
         lastx = x
         lastdiff = xdiff
     end
-    converged || warn("lambertwexp with z=", z, " did not converge in ", maxiter, " iterations.")
+    converged || @warn "lambertwexp with z=", z, " did not converge in ", maxiter, " iterations."
     return x
 end
 
