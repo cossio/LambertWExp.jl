@@ -5,6 +5,8 @@
 
 Computes lambertw(exp(x)), without intermediate overflows.
 
+Based on https://github.com/jlapeyre/LambertW.jl.
+
 
 # TODO
 
