@@ -20,18 +20,9 @@ end
 
 
 @testset "lambertwexp numerical value" begin
-    for x = -100 : 10 : 100
+    for x = -100 : 1 : 1000
         @inferred lambertwexp(x)
-        if iszero(x)
-            @test lambexpinv(lambertwexp(x)) ≈ x  atol = 1e-15
-        else
-            @test lambexpinv(lambertwexp(x)) ≈ x
-        end
-    end
-
-    for x = -10 : 1 : 10
         @test lambexpinv(lambertwexp(x)) ≈ x  atol = 1e-15
-        @test lambertwexp(x) ≈ lambertw(exp(x))
     end
 end
 

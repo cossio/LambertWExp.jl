@@ -13,7 +13,7 @@ export lambertwexp,
 """Halley's iteration for W(e^z), with initial guess x0"""
 function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
     #= *******************************************************
-    Based on https://github.com/jlapeyre/LambertW.jl.git,
+    Based on https://github.com/jlapeyre/LambertW.jl,
     which computes W(x). We here needed to compute W(e^x).
 
     Halley's iteration for W(z) is given in:
@@ -39,7 +39,7 @@ function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
         x1 = x + 1
         x -= xexz / (ex * x1 - (x + two_t) * xexz / (two_t * x1 ))
         xdiff = abs(lastx - x)
-        if xdiff <= 3 * eps(abs(lastx)) || lastdiff == xdiff  # second condition catches two-value cycle
+        if xdiff ≤ 3 * eps(abs(lastx)) || lastdiff == xdiff  # second condition catches two-value cycle
             converged = true
             break
         end
