@@ -90,12 +90,17 @@ end
 """W(e^x), for real x and the principal branch of W"""
 function lambertwexp(x::Real; maxiter::Integer = 1000)
     maxiter ≥ 0 || throw(ArgumentError("maxiter must be non-negative, got $maxiter"))
+    #= The return type is pinned down explicitly because `LambertW.lambertw` is not
+    type-stable: it returns either a number or an `(value, converged, iterations)`
+    tuple depending on its `info` keyword, and its NaN branch returns a `Float64`
+    NaN whatever the input type. =#
+    T = float(typeof(x))
     if x < 0
-        lambertw(exp(x))
+        return convert(T, lambertw(exp(x)))::T
     # elseif abs(x) < 1e-1
     #     lambertw_series_0(float(x))
     else
-        lambertw_branch_zero_exp(float(x); maxiter = maxiter)
+        return lambertw_branch_zero_exp(float(x); maxiter = maxiter)::T
     end
 end
 
