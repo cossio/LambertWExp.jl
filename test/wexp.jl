@@ -53,6 +53,21 @@ end
 end
 
 
+@testset "lambertwexp huge arguments" begin
+    #= For w ≳ 9.5e153 the Fritsch q-factor overflows Float64; these
+    values exercise the overflow-robust form of the update. e^x is far
+    beyond BigFloat range here, so accuracy is checked through the
+    defining equation w + log(w) = x instead of a lambertw reference. =#
+    setprecision(BigFloat, 256) do
+        for x in [9.4e153, 9.5e153, 1e154, 1e200, 1e308, prevfloat(Inf)]
+            w = lambertwexp(x)
+            @test isfinite(w)
+            @test big(w) + log(big(w)) ≈ big(x)  rtol = 4eps(Float64)
+        end
+    end
+end
+
+
 @testset "lambertwexp derivatives" begin
     for w = 1 : 1000
         x = w + log(w)
