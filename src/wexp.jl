@@ -29,10 +29,19 @@ function lambertw_fritsch_update(w::T, z::T) where T <: Real
     The update is computed as w + w * ε rather than w * (1 + ε):
     when ε is near roundoff, 1 + ε can round to 1 and lose the
     final ulp of correction that w + w * ε still delivers.
+
+    qₙ ~ 2w² overflows Float64 for w ≳ 9.5e153, making the factor
+    (qₙ - zₙ)/(qₙ - 2zₙ) evaluate to Inf/Inf = NaN. Its true value is
+    then 1 to full precision, so the update falls back to the Newton
+    step ε = zₙ/(1 + w) instead.
     ********************************************************** =#
     w1 = w + one(T)
     q = 2 * w1 * (w1 + z * convert(T, 2//3))
-    ε = z / w1 * (q - z) / (q - 2 * z)
+    if isfinite(q)
+        ε = z / w1 * (q - z) / (q - 2 * z)
+    else
+        ε = z / w1
+    end
     return w + w * ε, abs(ε)
 end
 
