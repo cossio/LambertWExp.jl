@@ -1,5 +1,14 @@
 [deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LambertW = "984bce1d-4616-540c-a9ee-88d1112d94c9"
 LambertWExp = "800b0394-cc3a-11e8-1760-5d40f07d798a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+Aqua = "0.8"
+ExplicitImports = "1"
+ForwardDiff = "0.10, 1"
+LambertW = "0.4.3, 1"
+Test = "1"
