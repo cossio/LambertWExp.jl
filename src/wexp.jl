@@ -1,5 +1,3 @@
-using LambertW: lambertw
-
 #= This code can be easily be extended to complex z
 and other branches of W. I didn't do it because real
 z was sufficient for my purposes. =#
@@ -10,79 +8,103 @@ export lambertwexp,
        lambertwexp_d2_from_W
 
 
-"""Halley's iteration for W(e^z), with initial guess x0"""
-function lambertwexp_halley(z::T, x0::T; maxiter::Int) where T <: Number
+"""Single update of the Fritsch iteration, w <- w + wε,
+given the current iterate w and its residual z"""
+function lambertw_fritsch_update(w::T, z::T) where T <: Real
     #= *******************************************************
-    Based on https://github.com/jlapeyre/LambertW.jl,
-    which computes W(x). We here needed to compute W(e^x).
+    Fritsch, Shafer & Crowell 1973, https://doi.org/10.1145/361952.361970.
+    See also Veberic 2012, https://doi.org/10.1016/j.cpc.2012.07.008,
+    Sec. 2.3, which recommends this iteration for its fourth-order
+    convergence (vs. third-order for Halley).
 
-    Halley's iteration for W(z) is given in:
+    For W(z) the iteration is w <- w(1 + ε), with
 
-    Corless, et al 1996, https://doi.org/10.1007/BF02124750
+        zₙ = log(z / w) - w
+        qₙ = 2(1 + w)(1 + w + (2/3)zₙ)
+        ε  = (zₙ / (1 + w)) (qₙ - zₙ) / (qₙ - 2zₙ)
 
-    In Eq. 5.9 of that paper, substitute z by e^z, and
-    divide numerator and denominator of the fraction by
-    e^z. This gives the iteration used here for W(e^z).
+    ε is the relative correction applied to w, so it doubles as
+    an error estimate.
 
-    This routine is best when z ≥ 0. If z < 0 it's better
-    to call lambert(exp(z)) directly.
+    The update is computed as w + w * ε rather than w * (1 + ε):
+    when ε is near roundoff, 1 + ε can round to 1 and lose the
+    final ulp of correction that w + w * ε still delivers.
     ********************************************************** =#
-
-    two_t = convert(T, 2)
-    x = x0
-    lastx = x
-    lastdiff = zero(T)
-    converged::Bool = false
-    for i in 1:maxiter
-        ex = exp(x - z)
-        xexz = x * ex - 1
-        x1 = x + 1
-        x -= xexz / (ex * x1 - (x + two_t) * xexz / (two_t * x1 ))
-        xdiff = abs(lastx - x)
-        if xdiff ≤ 3 * eps(abs(lastx)) || lastdiff == xdiff  # second condition catches two-value cycle
-            converged = true
-            break
-        end
-        lastx = x
-        lastdiff = xdiff
-    end
-    converged || @warn "lambertwexp with z=", z, " did not converge in ", maxiter, " iterations."
-    return x
+    w1 = w + one(T)
+    q = 2 * w1 * (w1 + z * convert(T, 2//3))
+    ε = z / w1 * (q - z) / (q - 2 * z)
+    return w + w * ε, abs(ε)
 end
 
 
-"""Provides initial guesses for Halley's iteration 
-to compute W(e^z), using the principal branch of W"""
-function lambertw_branch_zero_exp(x::T; maxiter::Integer)::T where T<:Real
+"""Fritsch iteration from initial guess w, where residual(w)
+computes the residual zₙ of the current iterate"""
+function lambertw_fritsch_iterate(residual, w::T, x::T, maxiter::Int) where T <: Real
+    converged::Bool = false
+    lastε = convert(T, Inf)
+    for i in 1:maxiter
+        wnew, ε = lambertw_fritsch_update(w, residual(w))
+        #= wnew == w means w is a fixed point of the computed map;
+        non-decreasing ε means the iteration reached its roundoff
+        floor (e.g. a two-value cycle). Either way we are done. =#
+        if wnew == w || ε ≥ lastε
+            w = wnew
+            converged = true
+            break
+        end
+        w = wnew
+        lastε = ε
+    end
+    converged || @warn "lambertwexp with z=", x, " did not converge in ", maxiter, " iterations."
+    return w
+end
+
+
+"""Fritsch iteration for W(e^x), starting from an
+initial guess appropriate to the magnitude of x"""
+function lambertwexp_fritsch(x::T; maxiter::Int) where T <: Real
     if isnan(x)
         return x
     elseif !isfinite(x)
-        return x > 0 ? x : zero(x)
-    # elseif iszero(x)
-    #     # omega constant, solution of xe^x=1
-    #     return T(0.567143290409783872999968662210355)
+        return x > 0 ? x : zero(T)
     end
 
-    one_t = one(T)
-    itwo_t = 1 / convert(T, 2)
-
-    if x > zero(T)
-        lx = x
-        llx = log(lx)
-        x0 = lx - llx - log(one_t - llx / lx) * itwo_t
+    if x > -2
+        #= Residual zₙ = x - w - log(w), which never forms e^x and
+        therefore cannot overflow. For x ≤ -2 this form is avoided:
+        there log(w) ≈ x, so the roundoff of log(w) alone puts a
+        floor of about eps * |x| on the achievable relative error. =#
+        if x > 1
+            # de Bruijn asymptotic expansion, W(e^x) ≈ x - log(x) + log(x)/x
+            lx = log(x)
+            w = x - lx + lx / x
+        else
+            w = lambertw_series_0(x)
+        end
+        return lambertw_fritsch_iterate(w -> x - w - log(w), w, x, maxiter)
     else
-        x0 = (567//1000) * exp(x)
+        #= Here a = e^x ≤ e⁻² is comfortably below overflow, so use the
+        residual in its original form, zₙ = log(a / w) - w, which stays
+        fully accurate as w -> 0 (a / w ≈ 1, no cancellation with x). =#
+        a = exp(x)
+        # W(a) = a - a² + (3/2)a³ - O(a⁴)
+        w = a * (1 - a * (1 - convert(T, 3//2) * a))
+        if a ≤ eps(one(T))
+            #= The truncated series is already exact to roundoff.
+            Returning here also avoids 0/0 in the residual when
+            e^x underflows to zero. =#
+            return w
+        end
+        return lambertw_fritsch_iterate(w -> log(a / w) - w, w, x, maxiter)
     end
-
-    return lambertwexp_halley(x, x0; maxiter = maxiter)
 end
 
 
 """Series expansion of W(e^z) about z = 0"""
 function lambertw_series_0(x::T)::T where T<:Real
-    0.5671432904097838 + (0.3618962566348892 + 
-                         (0.07367780517637275 + 
-                         (-0.001342859654990087 + 
+    0.5671432904097838 + (0.3618962566348892 +
+                         (0.07367780517637275 +
+                         (-0.001342859654990087 +
                          (-0.001636065147912496 + 0.00023214965556996332x)x)x)x)x
 end
 
@@ -90,18 +112,7 @@ end
 """W(e^x), for real x and the principal branch of W"""
 function lambertwexp(x::Real; maxiter::Integer = 1000)
     maxiter ≥ 0 || throw(ArgumentError("maxiter must be non-negative, got $maxiter"))
-    #= The return type is pinned down explicitly because `LambertW.lambertw` is not
-    type-stable: it returns either a number or an `(value, converged, iterations)`
-    tuple depending on its `info` keyword, and its NaN branch returns a `Float64`
-    NaN whatever the input type. =#
-    T = float(typeof(x))
-    if x < 0
-        return convert(T, lambertw(exp(x)))::T
-    # elseif abs(x) < 1e-1
-    #     lambertw_series_0(float(x))
-    else
-        return lambertw_branch_zero_exp(float(x); maxiter = maxiter)::T
-    end
+    return lambertwexp_fritsch(float(x); maxiter = Int(maxiter))
 end
 
 

@@ -36,6 +36,23 @@ end
 end
 
 
+@testset "lambertwexp accuracy against BigFloat reference" begin
+    #= W(e^x) computed exactly via LambertW at 256-bit precision,
+    covering the small-argument series region (x ≤ -2), the series
+    about zero (-2 < x ≤ 1), and the asymptotic region (x > 1),
+    including x > 709 where e^x overflows Float64. =#
+    #= x between about -745 and -708 is avoided: there e^x is subnormal,
+    so a 1-ulp difference in exp exceeds any reasonable rtol. =#
+    xs = [-1000; -708; -300; -50:0.25:8; 10 .^ (1:15); 700; 710]
+    setprecision(BigFloat, 256) do
+        for x in Float64.(xs)
+            ref = Float64(lambertw(exp(big(x))))
+            @test lambertwexp(x) ≈ ref  rtol = 4eps(Float64)
+        end
+    end
+end
+
+
 @testset "lambertwexp derivatives" begin
     for w = 1 : 1000
         x = w + log(w)
