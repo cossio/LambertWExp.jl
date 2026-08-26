@@ -1,4 +1,4 @@
-using LambertW
+using LambertW: lambertw
 
 #= This code can be easily be extended to complex z
 and other branches of W. I didn't do it because real

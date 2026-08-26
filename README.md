@@ -1,7 +1,7 @@
 # LambertWExp Julia Package
 
-[![Build Status](https://travis-ci.org/cossio/LambertWExp.jl.svg?branch=master)](https://travis-ci.org/cossio/LambertWExp.jl)
-[![Coverage Status](https://coveralls.io/repos/github/cossio/LambertWExp.jl/badge.svg?branch=master)](https://coveralls.io/github/cossio/LambertWExp.jl?branch=master)
+[![CI](https://github.com/cossio/LambertWExp.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/cossio/LambertWExp.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/cossio/LambertWExp.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/cossio/LambertWExp.jl)
 
 Computes `W(e^x)` for real x and the principal branch of W, avoiding intermediate overflow.
 
