@@ -5,8 +5,4 @@
 
 Computes `W(e^x)` for real x and the principal branch of W, avoiding intermediate overflow.
 
-Based on https://github.com/jlapeyre/LambertW.jl.
-
-## TODO
-
-Consider implementing Fritsch iteration, which should be faster (Veberic 2012).
+Uses the fourth-order Fritsch iteration (Fritsch, Shafer & Crowell 1973; see also Veberic 2012, https://doi.org/10.1016/j.cpc.2012.07.008) adapted to the `W(e^x)` formulation, so that `e^x` is never formed explicitly.
